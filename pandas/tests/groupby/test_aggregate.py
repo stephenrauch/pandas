@@ -6,7 +6,7 @@ generally in test_groupby.py
 """
 
 from __future__ import print_function
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 
 import numpy as np
@@ -738,3 +738,14 @@ class TestGroupByAggregate(tm.TestCase):
                                 columns=expected_column)
 
         assert_frame_equal(result, expected)
+
+    def test_agg_time_zone_round_trip(self):
+        ts = pd.Timestamp("2016-01-01 12:00:00", tz='US/Pacific')
+        df = pd.DataFrame({'a': 1, 'b': [ts + timedelta(minutes=nn)
+                                         for nn in range(10)]})
+
+        result1 = df.groupby('a')['b'].agg(np.min).iloc[0]
+        result2 = df.groupby('a')['b'].agg(lambda x: np.min(x)).iloc[0]
+
+        self.assertEqual(result1, ts)
+        self.assertEqual(result2, ts)
