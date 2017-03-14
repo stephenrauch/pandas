@@ -75,10 +75,12 @@ skiprows : list-like
     Rows to skip at the beginning (0-indexed)
 skip_footer : int, default 0
     Rows at the end to skip (0-indexed)
-index_col : int, list of ints, default None
-    Column (0-indexed) to use as the row labels of the DataFrame.
-    Pass None if there is no such column.  If a list is passed,
-    those columns will be combined into a ``MultiIndex``
+index_col : int or sequence or ``False``, default ``None``
+    Column (0-indexed) to use as the row labels of the DataFrame. If a
+    sequence is given, those columns will be combined into a ``MultiIndex``.
+    If ``None`` (default), pandas will use the first column as the
+    index. If ``False``, force pandas to *not* use the first column as the
+    index (row names).
 names : array-like, default None
     List of column names to use. If file contains no header row,
     then you should explicitly pass header=None
@@ -351,6 +353,11 @@ class ExcelFile(object):
             raise NotImplementedError("date_parser keyword of read_excel "
                                       "is not implemented")
 
+        # At the API, index_col is False means there is no index column
+        have_index_col = (index_col is not False)
+        if index_col is False:
+            index_col = None
+
         import xlrd
         from xlrd import (xldate, XL_CELL_DATE,
                           XL_CELL_ERROR, XL_CELL_BOOLEAN,
@@ -472,10 +479,13 @@ class ExcelFile(object):
 
                         data[row], control_row = _fill_mi_header(
                             data[row], control_row)
-                        header_name, data[row] = _pop_header_name(
-                            data[row], index_col)
+                        if have_index_col:
+                            header_name, data[row] = _pop_header_name(
+                                data[row], index_col)
+                        else:
+                            header_name = ''
                         header_names.append(header_name)
-                else:
+                elif have_index_col:
                     data[header] = _trim_excel_header(data[header])
 
             if is_list_like(index_col):

@@ -777,6 +777,42 @@ class XlrdTests(ReadingTestsBase):
                             header=[0, 1], skiprows=2)
         tm.assert_frame_equal(actual, expected)
 
+    def test_read_excel_multiindex_colindex_false(self):
+        # GH 11733
+        mi = MultiIndex(levels=[['Unnamed: 0_level_0', u'bar', u'foo'],
+                                ['Unnamed: 0_level_1', u'a', u'b']],
+                        labels=[[0, 2, 2, 1, 1], [0, 1, 2, 1, 2]],
+                        names=[u'', u''])
+        mi_file = os.path.join(self.dirpath, 'testmultiindex' + self.ext)
+
+        expected = DataFrame([[0, 1, 2.5, pd.Timestamp('2015-01-01'), True],
+                              [1, 2, 3.5, pd.Timestamp('2015-01-02'), False],
+                              [2, 3, 4.5, pd.Timestamp('2015-01-03'), False],
+                              [3, 4, 5.5, pd.Timestamp('2015-01-04'), True]],
+                             columns=mi)
+
+        actual = read_excel(mi_file, 'mi_column',
+                            header=[0, 1], index_col=False)
+        tm.assert_frame_equal(actual, expected)
+
+        mi = MultiIndex(levels=[[u'c1', u'bar', u'foo'],
+                                [u'c2', u'a', u'b']],
+                        labels=[[0, 2, 2, 1, 1], [0, 1, 2, 1, 2]],
+                        names=[u'', u''])
+        expected.columns = mi
+        actual = read_excel(mi_file, 'mi_column_name',
+                            header=[0, 1], index_col=False)
+        tm.assert_frame_equal(actual, expected)
+
+        mi = MultiIndex(levels=[[u'c1', u'bar', u'foo'],
+                                [u'c2', 1, 2]],
+                        labels=[[0, 2, 2, 1, 1], [0, 1, 2, 1, 2]],
+                        names=[u'', u''])
+        expected.columns = mi
+        actual = read_excel(mi_file, 'name_with_int',
+                            index_col=False, header=[0, 1])
+        tm.assert_frame_equal(actual, expected)
+
     def test_read_excel_multiindex_empty_level(self):
         # GH 12453
         _skip_if_no_xlsxwriter()

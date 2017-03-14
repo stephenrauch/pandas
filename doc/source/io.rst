@@ -123,11 +123,13 @@ names : array-like, default ``None``
   List of column names to use. If file contains no header row, then you should
   explicitly pass ``header=None``. Duplicates in this list are not allowed unless
   ``mangle_dupe_cols=True``, which is the default.
-index_col :  int or sequence or ``False``, default ``None``
-  Column to use as the row labels of the DataFrame. If a sequence is given, a
-  MultiIndex is used. If you have a malformed file with delimiters at the end of
-  each line, you might consider ``index_col=False`` to force pandas to *not* use
-  the first column as the index (row names).
+index_col : int or sequence or ``False``, default ``None``
+  Column (0-indexed) to use as the row labels of the DataFrame. If a
+  sequence is given, those columns will be combined into a ``MultiIndex``.
+  If ``None`` (default), pandas will use the first column as the
+  index. If ``False``, force pandas to *not* use the first column as the index
+  (row names).  ``None`` should be considered if you have a malformed file with
+  delimiters at the end of each line.
 usecols : array-like or callable, default ``None``
   Return a subset of the columns. If array-like, all elements must either
   be positional (i.e. integer indices into the document columns) or strings
